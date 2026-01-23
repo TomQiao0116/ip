@@ -1,10 +1,11 @@
 import java.util.Scanner;
+import java.util.ArrayList;
 public class Tom {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         String name = "Tom";
-        String[] tasks = new String[100];
-        int count_tasks = 0;
+
+        ArrayList<Task> tasks = new ArrayList<>();
 
         //Greet the user
         System.out.println("Hello! I'm " + name);
@@ -19,20 +20,36 @@ public class Tom {
 
             //list out the user inputs
             if (User_input.equalsIgnoreCase("list")) {
-                for(int i = 0; i < count_tasks; i++){
-                    System.out.println((i + 1) + ". " + tasks[i]);
+                for(int i = 0; i < tasks.size(); i++){
+                    System.out.println((i + 1) + ". " + tasks.get(i));
                 }
                 continue;
             }
 
-            //Add user inputs
-            if(count_tasks<100){
-                tasks[count_tasks] = User_input;
-                count_tasks++;
-                System.out.println("added: " + User_input);
-            } else{
-                System.out.println("List is already full!");
+            //mark
+            if (User_input.startsWith("mark ")) {
+                int index = Integer.parseInt(User_input.substring(5)) - 1;
+                if (index >= 0 && index < tasks.size()) {
+                    tasks.get(index).mark();
+                    System.out.println("Nice! I've marked this task as done:");
+                    System.out.println("  " + tasks.get(index));
+                }
+                continue;
             }
+
+            //unmark
+            if (User_input.startsWith("unmark ")) {
+                int index = Integer.parseInt(User_input.substring(7)) - 1;
+                if (index >= 0 && index < tasks.size()) {
+                    tasks.get(index).unmark();
+                    System.out.println("OK, I've marked this task as not done yet:");
+                    System.out.println("  " + tasks.get(index));
+                }
+                continue;
+            }
+
+            tasks.add(new Task(User_input));
+            System.out.println("added: " + User_input);
         }
         scanner.close();
     }
