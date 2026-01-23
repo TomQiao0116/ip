@@ -48,8 +48,41 @@ public class Tom {
                 continue;
             }
 
-            tasks.add(new Task(User_input));
-            System.out.println("added: " + User_input);
+            //TODOevent
+            if (User_input.startsWith("todo ")) {
+                String description = User_input.substring(5);
+                Task task = new Todo(description);
+                tasks.add(task);
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + task);
+                System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                continue;
+            }
+
+            //Deadline
+            if (User_input.startsWith("deadline ")) {
+                String[] parts = User_input.substring(9).split(" /by ", 2);
+                Task task = new Deadline(parts[0], parts[1]);
+                tasks.add(task);
+
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + task);
+                System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                continue;
+            }
+
+            //Event
+            if (User_input.startsWith("event ")) {
+                String[] parts = User_input.substring(6).split(" /from | /to ", 3);
+                Task task = new Event(parts[0], parts[1], parts[2]);
+                tasks.add(task);
+
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + task);
+                System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                continue;
+            }
+            System.out.println("I don't understand");
         }
         scanner.close();
     }
