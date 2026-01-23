@@ -86,6 +86,21 @@ public class Tom {
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                     continue;
                 }
+
+                //delete
+                if (User_input.startsWith("delete ")){
+                    String num = User_input.substring(7);
+                    int index = Integer.parseInt(num) - 1;
+                    if (index < 0 || index >= tasks.size()) {
+                        continue;
+                    }
+                    Task removed = tasks.remove(index);
+                    System.out.println("Noted. I've removed this task:");
+                    System.out.println("  " + removed);
+                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                }
+
+
                 throw new TomException("I don't know what that command means.");
             } catch (TomException e){
                 System.out.println(" " + e.getMessage());
