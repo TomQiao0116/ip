@@ -1,9 +1,11 @@
+package tom;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 public class Tom {
     public static void main(String[] args) {
-        String name = "Tom";
+        String name = "tom";
         Ui ui = new Ui();
 
         Storage storage = new Storage();
@@ -55,7 +57,7 @@ public class Tom {
 
                     case "todo":
                         if (argsStr.isEmpty()) {
-                            throw new TomException("Todo description cannot be empty.");
+                            throw new TomException("tom.Todo description cannot be empty.");
                         }
                         Task todo = new Todo(argsStr);
                         tasks.add(todo);
@@ -68,7 +70,7 @@ public class Tom {
                     case "deadline": {
                         String[] parts = argsStr.split(" /by ", 2);
                         if (parts.length < 2) {
-                            throw new TomException("Deadline must have /by YYYY-MM-DD");
+                            throw new TomException("tom.Deadline must have /by YYYY-MM-DD");
                         }
 
                         String desc = parts[0].trim();

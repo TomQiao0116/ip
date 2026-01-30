@@ -1,3 +1,5 @@
+package tom;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDate;
@@ -6,7 +8,7 @@ import java.util.List;
 
 public class Storage {
     private static final Path DIR = Paths.get("data");
-    private static final Path FILE = DIR.resolve("Tom.txt");
+    private static final Path FILE = DIR.resolve("tom.Tom.txt");
 
     public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();

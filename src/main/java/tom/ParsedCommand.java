@@ -1,3 +1,5 @@
+package tom;
+
 public class ParsedCommand {
     private final String commandWord;
     private final String arguments;

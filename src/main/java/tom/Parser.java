@@ -1,3 +1,5 @@
+package tom;
+
 public class Parser {
 
     public static ParsedCommand parse(String userInput) throws TomException {
