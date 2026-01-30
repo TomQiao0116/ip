@@ -1,12 +1,24 @@
-public class Deadline extends Task {
-    private String deadline;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
-    public Deadline(String description, String deadline) {
+public class Deadline extends Task {
+    private static final DateTimeFormatter OUTPUT_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
+
+    private LocalDate deadline;
+
+    public Deadline(String description, LocalDate deadline) {
         super(description);
         this.deadline = deadline;
     }
 
-    public String getDeadline() {
+    // 如果你还想保留 String 构造器（可选，方便调用）
+    public Deadline(String description, String deadlineStr) {
+        this(description, LocalDate.parse(deadlineStr)); // 默认接受 yyyy-MM-dd
+    }
+
+    public LocalDate getDeadline() {
         return deadline;
     }
 
@@ -17,6 +29,6 @@ public class Deadline extends Task {
 
     @Override
     public String toString() {
-        return super.toString() + " (by: " + deadline + ")";
+        return super.toString() + " (by: " + deadline.format(OUTPUT_FORMAT) + ")";
     }
 }
