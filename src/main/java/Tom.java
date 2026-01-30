@@ -5,7 +5,8 @@ public class Tom {
         Scanner scanner = new Scanner(System.in);
         String name = "Tom";
 
-        ArrayList<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage();
+        ArrayList<Task> tasks = storage.load();
 
         //Greet the user
         System.out.println("Hello! I'm " + name);
@@ -34,6 +35,7 @@ public class Tom {
                         tasks.get(index).mark();
                         System.out.println("Nice! I've marked this task as done:");
                         System.out.println("  " + tasks.get(index));
+                        storage.save(tasks);
                     }
                     continue;
                 }
@@ -45,6 +47,7 @@ public class Tom {
                         tasks.get(index).unmark();
                         System.out.println("OK, I've marked this task as not done yet:");
                         System.out.println("  " + tasks.get(index));
+                        storage.save(tasks);
                     }
                     continue;
                 }
@@ -60,6 +63,7 @@ public class Tom {
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + task);
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    storage.save(tasks);
                     continue;
                 }
 
@@ -72,6 +76,7 @@ public class Tom {
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + task);
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    storage.save(tasks);
                     continue;
                 }
 
@@ -84,6 +89,7 @@ public class Tom {
                     System.out.println("Got it. I've added this task:");
                     System.out.println("  " + task);
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    storage.save(tasks);
                     continue;
                 }
 
@@ -98,6 +104,7 @@ public class Tom {
                     System.out.println("Noted. I've removed this task:");
                     System.out.println("  " + removed);
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    storage.save(tasks);
                 }
 
 
