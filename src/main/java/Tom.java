@@ -1,132 +1,133 @@
-import java.util.Scanner;
-import java.util.ArrayList;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 public class Tom {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
         String name = "Tom";
+        Ui ui = new Ui();
 
         Storage storage = new Storage();
-        ArrayList<Task> tasks = storage.load();
+        TaskList tasks = new TaskList(storage.load());
 
-        //Greet the user
-        System.out.println("Hello! I'm " + name);
-        System.out.println("What can I do for you?");
+        ui.showWelcome(name);
 
-        while(true){
-            String User_input = scanner.nextLine();
+        while (true) {
             try {
-                if (User_input.equalsIgnoreCase("bye")) {
-                    System.out.println("Bye. Hope to see you again soon!");
-                    break;
-                }
+                String userInput = ui.readCommand();
+                ParsedCommand pc = Parser.parse(userInput);
 
-                //list out the user inputs
-                if (User_input.equalsIgnoreCase("list")) {
-                    for (int i = 0; i < tasks.size(); i++) {
-                        System.out.println((i + 1) + ". " + tasks.get(i));
-                    }
-                    continue;
-                }
+                String command = pc.getCommandWord();
+                String argsStr = pc.getArguments();
 
-                //mark
-                if (User_input.startsWith("mark ")) {
-                    int index = Integer.parseInt(User_input.substring(5)) - 1;
-                    if (index >= 0 && index < tasks.size()) {
-                        tasks.get(index).mark();
-                        System.out.println("Nice! I've marked this task as done:");
-                        System.out.println("  " + tasks.get(index));
-                        storage.save(tasks);
-                    }
-                    continue;
-                }
+                switch (command) {
+                    case "bye":
+                        ui.showGoodbye();
+                        ui.close();
+                        return;
 
-                //unmark
-                if (User_input.startsWith("unmark ")) {
-                    int index = Integer.parseInt(User_input.substring(7)) - 1;
-                    if (index >= 0 && index < tasks.size()) {
-                        tasks.get(index).unmark();
-                        System.out.println("OK, I've marked this task as not done yet:");
-                        System.out.println("  " + tasks.get(index));
-                        storage.save(tasks);
-                    }
-                    continue;
-                }
+                    case "list":
+                        for (int i = 0; i < tasks.size(); i++) {
+                            ui.showMessage((i + 1) + ". " + tasks.get(i));
+                        }
+                        break;
 
-                //TODOevent
-                if (User_input.equalsIgnoreCase("todo")) {
-                    throw new TomException("Todo description cannot be empty.");
-                }
-                if (User_input.startsWith("todo ")) {
-                    String description = User_input.substring(5);
-                    Task task = new Todo(description);
-                    tasks.add(task);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + task);
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    storage.save(tasks);
-                    continue;
-                }
-
-                //Deadline
-                if (User_input.startsWith("deadline ")) {
-                    String[] parts = User_input.substring(9).split(" /by ", 2);
-                    if (parts.length < 2) {
-                        throw new TomException("Deadline must have /by YYYY-MM-DD");
+                    case "mark": {
+                        int index = Integer.parseInt(argsStr) - 1;
+                        if (index >= 0 && index < tasks.size()) {
+                            tasks.get(index).mark();
+                            ui.showMessage("Nice! I've marked this task as done:");
+                            ui.showMessage("  " + tasks.get(index));
+                            storage.save(tasks.getTasks());
+                        }
+                        break;
                     }
 
-                    String desc = parts[0].trim();
-                    String dateStr = parts[1].trim();
-
-                    try {
-                        LocalDate by = LocalDate.parse(dateStr); // 接受 yyyy-MM-dd
-                        Task task = new Deadline(desc, by);
-                        tasks.add(task);
-
-                        System.out.println("Got it. I've added this task:");
-                        System.out.println("  " + task);
-                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    } catch (DateTimeParseException e) {
-                        throw new TomException("Date must be in YYYY-MM-DD format, e.g., 2019-10-15");
+                    case "unmark": {
+                        int index = Integer.parseInt(argsStr) - 1;
+                        if (index >= 0 && index < tasks.size()) {
+                            tasks.get(index).unmark();
+                            ui.showMessage("OK, I've marked this task as not done yet:");
+                            ui.showMessage("  " + tasks.get(index));
+                            storage.save(tasks.getTasks());
+                        }
+                        break;
                     }
-                    storage.save(tasks);
-                    continue;
-                }
 
-                //Event
-                if (User_input.startsWith("event ")) {
-                    String[] parts = User_input.substring(6).split(" /from | /to ", 3);
-                    Task task = new Event(parts[0], parts[1], parts[2]);
-                    tasks.add(task);
+                    case "todo":
+                        if (argsStr.isEmpty()) {
+                            throw new TomException("Todo description cannot be empty.");
+                        }
+                        Task todo = new Todo(argsStr);
+                        tasks.add(todo);
+                        ui.showMessage("Got it. I've added this task:");
+                        ui.showMessage("  " + todo);
+                        ui.showMessage("Now you have " + tasks.size() + " tasks in the list.");
+                        storage.save(tasks.getTasks());
+                        break;
 
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + task);
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    storage.save(tasks);
-                    continue;
-                }
+                    case "deadline": {
+                        String[] parts = argsStr.split(" /by ", 2);
+                        if (parts.length < 2) {
+                            throw new TomException("Deadline must have /by YYYY-MM-DD");
+                        }
 
-                //delete
-                if (User_input.startsWith("delete ")){
-                    String num = User_input.substring(7);
-                    int index = Integer.parseInt(num) - 1;
-                    if (index < 0 || index >= tasks.size()) {
-                        continue;
+                        String desc = parts[0].trim();
+                        String dateStr = parts[1].trim();
+
+                        try {
+                            LocalDate by = LocalDate.parse(dateStr);
+                            Task d = new Deadline(desc, by);
+                            tasks.add(d);
+
+                            ui.showMessage("Got it. I've added this task:");
+                            ui.showMessage("  " + d);
+                            ui.showMessage("Now you have " + tasks.size() + " tasks in the list.");
+                            storage.save(tasks.getTasks());
+                        } catch (DateTimeParseException e) {
+                            throw new TomException("Date must be in YYYY-MM-DD format, e.g., 2019-10-15");
+                        }
+                        break;
                     }
-                    Task removed = tasks.remove(index);
-                    System.out.println("Noted. I've removed this task:");
-                    System.out.println("  " + removed);
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-                    storage.save(tasks);
+
+                    case "event": {
+                        // 维持你原来的逻辑：按 " /from | /to " 拆
+                        String[] parts = argsStr.split(" /from | /to ", 3);
+                        Task e = new Event(parts[0], parts[1], parts[2]);
+                        tasks.add(e);
+
+                        ui.showMessage("Got it. I've added this task:");
+                        ui.showMessage("  " + e);
+                        ui.showMessage("Now you have " + tasks.size() + " tasks in the list.");
+                        storage.save(tasks.getTasks());
+                        break;
+                    }
+
+                    case "delete": {
+                        int index = Integer.parseInt(argsStr) - 1;
+                        if (index < 0 || index >= tasks.size()) {
+                            break;
+                        }
+                        Task removed = tasks.remove(index);
+                        ui.showMessage("Noted. I've removed this task:");
+                        ui.showMessage("  " + removed);
+                        ui.showMessage("Now you have " + tasks.size() + " tasks in the list.");
+                        storage.save(tasks.getTasks());
+                        break;
+                    }
+
+                    default:
+                        throw new TomException("I don't know what that command means.");
                 }
 
-                throw new TomException("I don't know what that command means.");
-            } catch (TomException e){
-                System.out.println(" " + e.getMessage());
+            } catch (TomException e) {
+                ui.showMessage(" " + e.getMessage());
+            } catch (NumberFormatException e) {
+                // 保持你原来的“无效数字就不做事”的风格：这里给个更友好提示也行
+                ui.showMessage(" Please enter a valid number.");
+            } catch (ArrayIndexOutOfBoundsException e) {
+                // event 参数不足时你原来会直接崩，这里保护一下
+                ui.showMessage(" Invalid command format.");
             }
         }
-        scanner.close();
     }
 }
