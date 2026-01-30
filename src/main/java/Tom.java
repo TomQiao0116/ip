@@ -1,5 +1,8 @@
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
 public class Tom {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -70,12 +73,24 @@ public class Tom {
                 //Deadline
                 if (User_input.startsWith("deadline ")) {
                     String[] parts = User_input.substring(9).split(" /by ", 2);
-                    Task task = new Deadline(parts[0], parts[1]);
-                    tasks.add(task);
+                    if (parts.length < 2) {
+                        throw new TomException("Deadline must have /by YYYY-MM-DD");
+                    }
 
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + task);
-                    System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    String desc = parts[0].trim();
+                    String dateStr = parts[1].trim();
+
+                    try {
+                        LocalDate by = LocalDate.parse(dateStr); // 接受 yyyy-MM-dd
+                        Task task = new Deadline(desc, by);
+                        tasks.add(task);
+
+                        System.out.println("Got it. I've added this task:");
+                        System.out.println("  " + task);
+                        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+                    } catch (DateTimeParseException e) {
+                        throw new TomException("Date must be in YYYY-MM-DD format, e.g., 2019-10-15");
+                    }
                     storage.save(tasks);
                     continue;
                 }
@@ -106,7 +121,6 @@ public class Tom {
                     System.out.println("Now you have " + tasks.size() + " tasks in the list.");
                     storage.save(tasks);
                 }
-
 
                 throw new TomException("I don't know what that command means.");
             } catch (TomException e){

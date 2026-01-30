@@ -1,11 +1,12 @@
 import java.io.IOException;
 import java.nio.file.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Storage {
     private static final Path DIR = Paths.get("data");
-    private static final Path FILE = DIR.resolve("duke.txt");
+    private static final Path FILE = DIR.resolve("Tom.txt");
 
     public ArrayList<Task> load() {
         ArrayList<Task> tasks = new ArrayList<>();
@@ -56,6 +57,9 @@ public class Storage {
         if (t instanceof Event e) {
             return "E | " + done + " | " + e.getDescription() + " | " + e.getFrom() + " | " + e.getTo();
         }
+        if (t instanceof Deadline d) {
+            return "D | " + done + " | " + d.getDescription() + " | " + d.getDeadline().toString();
+        }
         // 不认识的类型就丢掉（或写默认）
         return "T | " + done + " | " + t.getDescription();
     }
@@ -83,7 +87,8 @@ public class Storage {
                 break;
             case "D":
                 if (parts.length < 4) return null;
-                t = new Deadline(desc, parts[3]);
+                LocalDate by = LocalDate.parse(parts[3]); // 文件里存 yyyy-MM-dd
+                t = new Deadline(desc, by);
                 break;
             case "E":
                 if (parts.length < 5) return null;
