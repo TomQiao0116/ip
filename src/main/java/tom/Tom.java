@@ -2,6 +2,7 @@ package tom;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 
 /**
  * Entry point of the chatbot application.
@@ -128,6 +129,19 @@ public class Tom {
                         storage.save(tasks.getTasks());
                         break;
                     }
+
+                    case "find":
+                        if (argsStr.isEmpty()) {
+                            throw new TomException("Keyword to find cannot be empty.");
+                        }
+
+                        ArrayList<Task> results = tasks.find(argsStr);
+
+                        ui.showMessage("Here are the matching tasks in your list:");
+                        for (int i = 0; i < results.size(); i++) {
+                            ui.showMessage((i + 1) + ". " + results.get(i));
+                        }
+                        break;
 
                     default:
                         throw new TomException("I don't know what that command means.");
