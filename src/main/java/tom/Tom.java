@@ -3,7 +3,20 @@ package tom;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Entry point of the chatbot application.
+ * <p>
+ * This class starts the program, reads user commands in a loop, and coordinates interactions
+ * between the UI, task list, command parser, and storage.
+ */
 public class Tom {
+
+    /**
+     * Runs the chatbot application.
+     * Reads commands from the user, executes them, and persists changes when needed.
+     *
+     * @param args Command-line arguments (not used).
+     */
     public static void main(String[] args) {
         String name = "tom";
         Ui ui = new Ui();
@@ -92,7 +105,6 @@ public class Tom {
                     }
 
                     case "event": {
-                        // 维持你原来的逻辑：按 " /from | /to " 拆
                         String[] parts = argsStr.split(" /from | /to ", 3);
                         Task e = new Event(parts[0], parts[1], parts[2]);
                         tasks.add(e);
@@ -124,10 +136,8 @@ public class Tom {
             } catch (TomException e) {
                 ui.showMessage(" " + e.getMessage());
             } catch (NumberFormatException e) {
-                // 保持你原来的“无效数字就不做事”的风格：这里给个更友好提示也行
                 ui.showMessage(" Please enter a valid number.");
             } catch (ArrayIndexOutOfBoundsException e) {
-                // event 参数不足时你原来会直接崩，这里保护一下
                 ui.showMessage(" Invalid command format.");
             }
         }
