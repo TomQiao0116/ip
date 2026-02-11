@@ -2,3 +2,4 @@ T | 0 | cook
 T | 0 | read book
 D | 0 | return book | 2025-02-10
 T | 0 | watch movie
+T | 0 | run
