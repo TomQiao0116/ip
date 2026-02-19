@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * Represents a list of tasks.
+ * Represents a list of tasks
  * Provides basic operations to add, retrieve, remove, and query tasks in the list.
  */
 public class TaskList {
