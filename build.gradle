@@ -45,11 +45,6 @@ application {
     mainClass.set("tom.Launcher")
 }
 
-shadowJar {
-    archiveBaseName = "tom"
-    archiveClassifier = null
-}
-
 run{
     standardInput = System.in
 }
