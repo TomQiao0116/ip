@@ -1,8 +1,8 @@
 package tom;
 
 /**
- * Represents an event task with a start time and an end time.
- * An event task has a description and occurs between two specified time points.
+ * Represents an event task with a start time and an end time
+ * An event task has a description and occurs between two specified time points
  */
 public class Event extends Task {
 
