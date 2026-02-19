@@ -82,6 +82,19 @@ public class Tom {
                     }
                     return sb.toString().trim();
 
+                case "sort":
+                    tasks.sort();
+                    storage.save(tasks.getTasks());
+                    // Show the sorted list immediately
+                    if (tasks.size() == 0) {
+                        return "Sorted your tasks.\nYour list is empty.";
+                    }
+                    StringBuilder sorted = new StringBuilder("Sorted your tasks.\nHere are the tasks in your list:\n");
+                    for (int i = 0; i < tasks.size(); i++) {
+                        sorted.append((i + 1)).append(". ").append(tasks.get(i)).append("\n");
+                    }
+                    return sorted.toString().trim();
+
                 case "mark": {
                     int index = Integer.parseInt(argsStr) - 1;
                     if (index < 0 || index >= tasks.size()) {
