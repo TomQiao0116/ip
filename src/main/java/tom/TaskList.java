@@ -1,9 +1,11 @@
 package tom;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
- * Represents a list of tasks.
+ * Represents a list of tasks
  * Provides basic operations to add, retrieve, remove, and query tasks in the list.
  */
 public class TaskList {
@@ -90,5 +92,56 @@ public class TaskList {
             }
         }
         return matches;
+    }
+
+    /**
+     * Sorts tasks by type and relevant fields.
+     * Order:
+     * 1. Deadline (by date)
+     * 2. Event (by from)
+     * 3. Todo (by description)
+     */
+    public void sort() {
+        Collections.sort(tasks, taskComparator());
+    }
+
+    private Comparator<Task> taskComparator() {
+        return (a, b) -> {
+            int rankA = typeRank(a);
+            int rankB = typeRank(b);
+
+            if (rankA != rankB) {
+                return Integer.compare(rankA, rankB);
+            }
+
+            // Same type: compare within type
+            if (a instanceof Deadline && b instanceof Deadline) {
+                Deadline da = (Deadline) a;
+                Deadline db = (Deadline) b;
+                return da.getDeadline().compareTo(db.getDeadline());
+            }
+
+            if (a instanceof Event && b instanceof Event) {
+                Event ea = (Event) a;
+                Event eb = (Event) b;
+                return ea.getFrom().compareToIgnoreCase(eb.getFrom());
+            }
+
+            // Todo or fallback: compare by description
+            return a.getDescription().compareToIgnoreCase(b.getDescription());
+        };
+    }
+
+    private int typeRank(Task task) {
+        if (task instanceof Deadline) {
+            return 0;
+        }
+        if (task instanceof Event) {
+            return 1;
+        }
+        if (task instanceof Todo) {
+            return 2;
+        }
+        return 3;
     }
 }

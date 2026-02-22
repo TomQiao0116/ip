@@ -72,7 +72,57 @@ public class Tom {
                     return "Bye. Hope to see you again soon!";
 
                 case "list":
+<<<<<<< branch-A-CodeQuality
                     return handleList();
+=======
+                    if (tasks.size() == 0) {
+                        return "Your list is empty.";
+                    }
+                    StringBuilder sb = new StringBuilder("Here are the tasks in your list:\n");
+                    for (int i = 0; i < tasks.size(); i++) {
+                        sb.append((i + 1)).append(". ").append(tasks.get(i)).append("\n");
+                    }
+                    return sb.toString().trim();
+
+                case "sort":
+                    tasks.sort();
+                    storage.save(tasks.getTasks());
+                    // Show the sorted list immediately
+                    if (tasks.size() == 0) {
+                        return "Sorted your tasks.\nYour list is empty.";
+                    }
+                    StringBuilder sorted = new StringBuilder("Sorted your tasks.\nHere are the tasks in your list:\n");
+                    for (int i = 0; i < tasks.size(); i++) {
+                        sorted.append((i + 1)).append(". ").append(tasks.get(i)).append("\n");
+                    }
+                    return sorted.toString().trim();
+
+                case "mark": {
+                    int index = Integer.parseInt(argsStr) - 1;
+                    if (index < 0 || index >= tasks.size()) {
+                        return "Invalid task index.";
+                    }
+                    assert index >= 0 && index < tasks.size()
+                            : "index out of range after validation";
+
+                    tasks.get(index).mark();
+                    storage.save(tasks.getTasks());
+                    return "Nice! I've marked this task as done:\n  " + tasks.get(index);
+                }
+
+                case "unmark": {
+                    int index = Integer.parseInt(argsStr) - 1;
+                    if (index < 0 || index >= tasks.size()) {
+                        return "Invalid task index.";
+                    }
+                    assert index >= 0 && index < tasks.size()
+                            : "index out of range after validation";
+
+                    tasks.get(index).unmark();
+                    storage.save(tasks.getTasks());
+                    return "OK, I've marked this task as not done yet:\n  " + tasks.get(index);
+                }
+>>>>>>> master
 
                 case "mark":
                     return handleMark(argsStr);
