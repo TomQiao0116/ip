@@ -24,6 +24,7 @@ public class Main extends Application {
             Scene scene = new Scene(ap);
             stage.setScene(scene);
             fxmlLoader.<MainWindow>getController().setTom(tom);  // inject the Duke instance
+            stage.setTitle("Tom Chatbot");
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
