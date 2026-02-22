@@ -5,7 +5,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
 /**
- * Entry point of the chatbot application
+ * Entry point of the chatbot application.
  * <p>
  * This class starts the program, reads user commands in a loop, and coordinates interactions
  * between the UI, task list, command parser, and storage.
