@@ -10,7 +10,7 @@ import tom.MainWindow;
 import tom.Tom;
 
 /**
- * A GUI for Duke using FXML.
+ * A GUI for Duke using FXML
  */
 public class Main extends Application {
 
