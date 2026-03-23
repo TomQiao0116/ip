@@ -5,45 +5,20 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
 /**
- * Entry point of the chatbot application.
- * <p>
- * This class starts the program, reads user commands in a loop, and coordinates interactions
- * between the UI, task list, command parser, and storage.
+ * Represents the main chatbot application.
+ * Tom processes user commands, updates the task list,
+ * and returns response messages for display in the GUI.
  */
 public class Tom {
-
     private final Storage storage;
     private final TaskList tasks;
 
     /**
-     * Constructs a Tom chatbot instance.
-     * Initializes storage and loads existing tasks.
+     * Creates a Tom chatbot with tasks loaded from storage.
      */
     public Tom() {
         storage = new Storage();
         tasks = new TaskList(storage.load());
-    }
-
-    /**
-     * Runs the chatbot application in CLI mode.
-     *
-     * @param args Command-line arguments (not used).
-     */
-    public static void main(String[] args) {
-        Tom tom = new Tom();
-        Ui ui = new Ui();
-        ui.showWelcome("tom");
-
-        while (true) {
-            String userInput = ui.readCommand();
-            String response = tom.getResponse(userInput);
-            ui.showMessage(response);
-
-            if (userInput.equals("bye")) {
-                ui.close();
-                break;
-            }
-        }
     }
 
     /**
@@ -54,172 +29,14 @@ public class Tom {
      * @return The chatbot's response as a String.
      */
     public String getResponse(String userInput) {
-        assert userInput != null : "userInput should not be null";
+        assert userInput != null : "User input should not be null";
 
         try {
-            ParsedCommand pc = Parser.parse(userInput);
-            assert pc != null : "Parser.parse should not return null";
+            ParsedCommand parsedCommand = Parser.parse(userInput);
+            String commandWord = parsedCommand.getCommandWord();
+            String arguments = parsedCommand.getArguments();
 
-            String command = pc.getCommandWord();
-            String argsStr = pc.getArguments();
-
-            assert command != null && !command.isEmpty()
-                    : "command word should not be null or empty";
-            assert argsStr != null : "arguments string should not be null";
-
-            switch (command) {
-
-                case "bye":
-                    return "Bye. Hope to see you again soon!";
-
-                case "list":
-                    if (tasks.size() == 0) {
-                        return "Your list is empty.";
-                    }
-                    StringBuilder sb = new StringBuilder("Here are the tasks in your list:\n");
-                    for (int i = 0; i < tasks.size(); i++) {
-                        sb.append((i + 1)).append(". ").append(tasks.get(i)).append("\n");
-                    }
-                    return sb.toString().trim();
-
-                case "sort":
-                    tasks.sort();
-                    storage.save(tasks.getTasks());
-                    // Show the sorted list immediately
-                    if (tasks.size() == 0) {
-                        return "Sorted your tasks.\nYour list is empty.";
-                    }
-                    StringBuilder sorted = new StringBuilder("Sorted your tasks.\nHere are the tasks in your list:\n");
-                    for (int i = 0; i < tasks.size(); i++) {
-                        sorted.append((i + 1)).append(". ").append(tasks.get(i)).append("\n");
-                    }
-                    return sorted.toString().trim();
-
-                case "mark": {
-                    int index = Integer.parseInt(argsStr) - 1;
-                    if (index < 0 || index >= tasks.size()) {
-                        return "Invalid task index.";
-                    }
-                    assert index >= 0 && index < tasks.size()
-                            : "index out of range after validation";
-
-                    tasks.get(index).mark();
-                    storage.save(tasks.getTasks());
-                    return "Nice! I've marked this task as done:\n  " + tasks.get(index);
-                }
-
-                case "unmark": {
-                    int index = Integer.parseInt(argsStr) - 1;
-                    if (index < 0 || index >= tasks.size()) {
-                        return "Invalid task index.";
-                    }
-                    assert index >= 0 && index < tasks.size()
-                            : "index out of range after validation";
-
-                    tasks.get(index).unmark();
-                    storage.save(tasks.getTasks());
-                    return "OK, I've marked this task as not done yet:\n  " + tasks.get(index);
-                }
-
-                case "todo":
-                    if (argsStr.isEmpty()) {
-                        throw new TomException("Todo description cannot be empty.");
-                    }
-                    Task todo = new Todo(argsStr);
-                    tasks.add(todo);
-                    storage.save(tasks.getTasks());
-                    return "Got it. I've added this task:\n  "
-                            + todo + "\nNow you have "
-                            + tasks.size() + " tasks in the list.";
-
-                case "deadline": {
-                    String[] parts = argsStr.split(" /by ", 2);
-                    if (parts.length < 2) {
-                        throw new TomException("Deadline must have /by YYYY-MM-DD");
-                    }
-                    assert parts.length == 2
-                            : "split with limit=2 should produce exactly 2 parts";
-
-                    String desc = parts[0].trim();
-                    String dateStr = parts[1].trim();
-
-                    try {
-                        LocalDate by = LocalDate.parse(dateStr);
-                        Task d = new Deadline(desc, by);
-                        tasks.add(d);
-                        storage.save(tasks.getTasks());
-
-                        return "Got it. I've added this task:\n  "
-                                + d + "\nNow you have "
-                                + tasks.size() + " tasks in the list.";
-
-                    } catch (DateTimeParseException e) {
-                        throw new TomException("Date must be in YYYY-MM-DD format.");
-                    }
-                }
-
-                case "event": {
-                    String[] parts = argsStr.split(" /from | /to ", 3);
-                    if (parts.length < 3) {
-                        throw new TomException("Event must have /from and /to.");
-                    }
-                    assert parts.length == 3
-                            : "split with limit=3 should produce exactly 3 parts";
-
-                    Task e = new Event(parts[0], parts[1], parts[2]);
-                    tasks.add(e);
-                    storage.save(tasks.getTasks());
-
-                    return "Got it. I've added this task:\n  "
-                            + e + "\nNow you have "
-                            + tasks.size() + " tasks in the list.";
-                }
-
-                case "delete": {
-                    int index = Integer.parseInt(argsStr) - 1;
-                    if (index < 0 || index >= tasks.size()) {
-                        return "Invalid task index.";
-                    }
-                    assert index >= 0 && index < tasks.size()
-                            : "index out of range after validation";
-
-                    Task removed = tasks.remove(index);
-                    storage.save(tasks.getTasks());
-
-                    return "Noted. I've removed this task:\n  "
-                            + removed + "\nNow you have "
-                            + tasks.size() + " tasks in the list.";
-                }
-
-                case "find":
-                    if (argsStr.isEmpty()) {
-                        throw new TomException("Keyword to find cannot be empty.");
-                    }
-
-                    ArrayList<Task> results = tasks.find(argsStr);
-                    assert results != null : "find should not return null";
-
-                    if (results.isEmpty()) {
-                        return "No matching tasks found.";
-                    }
-
-                    StringBuilder findResult =
-                            new StringBuilder("Here are the matching tasks in your list:\n");
-
-                    for (int i = 0; i < results.size(); i++) {
-                        findResult.append((i + 1))
-                                .append(". ")
-                                .append(results.get(i))
-                                .append("\n");
-                    }
-
-                    return findResult.toString().trim();
-
-                default:
-                    assert false : "Unexpected command word: " + command;
-                    throw new TomException("I don't know what that command means.");
-            }
-
+            return executeCommand(commandWord, arguments);
         } catch (TomException e) {
             return e.getMessage();
         } catch (NumberFormatException e) {
@@ -227,5 +44,262 @@ public class Tom {
         } catch (ArrayIndexOutOfBoundsException e) {
             return "Invalid command format.";
         }
+    }
+
+    /**
+     * Executes the command based on the given command word and arguments.
+     *
+     * @param commandWord The command keyword.
+     * @param arguments The arguments supplied with the command.
+     * @return The chatbot's response after executing the command.
+     * @throws TomException If the command is invalid or cannot be executed.
+     */
+    private String executeCommand(String commandWord, String arguments) throws TomException {
+        switch (commandWord) {
+            case "bye":
+                return getByeMessage();
+            case "list":
+                return handleList();
+            case "sort":
+                return handleSort();
+            case "mark":
+                return handleMark(arguments);
+            case "unmark":
+                return handleUnmark(arguments);
+            case "todo":
+                return handleTodo(arguments);
+            case "deadline":
+                return handleDeadline(arguments);
+            case "event":
+                return handleEvent(arguments);
+            case "delete":
+                return handleDelete(arguments);
+            case "find":
+                return handleFind(arguments);
+            default:
+                throw new TomException("I don't know what that means.");
+        }
+    }
+
+    /**
+     * Returns the farewell message.
+     *
+     * @return Farewell message.
+     */
+    private String getByeMessage() {
+        return "Bye. Hope to see you again soon!";
+    }
+
+    /**
+     * Returns all tasks currently in the task list.
+     *
+     * @return Formatted task list.
+     */
+    private String handleList() {
+        if (tasks.size() == 0) {
+            return "Your list is empty.";
+        }
+
+        return formatTaskList("Here are the tasks in your list:\n", tasks.getTasks());
+    }
+
+    /**
+     * Sorts the tasks and returns the updated task list.
+     *
+     * @return Confirmation message together with the sorted task list.
+     */
+    private String handleSort() {
+        tasks.sort();
+        saveTasks();
+
+        if (tasks.size() == 0) {
+            return "Sorted your tasks.\nYour list is empty.";
+        }
+
+        return formatTaskList("Sorted your tasks.\nHere are the tasks in your list:\n", tasks.getTasks());
+    }
+
+    /**
+     * Marks a task as done.
+     *
+     * @param arguments The task number to mark.
+     * @return Confirmation message after marking the task.
+     */
+    private String handleMark(String arguments) {
+        int index = parseTaskIndex(arguments);
+        Task task = tasks.get(index);
+        task.mark();
+        saveTasks();
+
+        return "Nice! I've marked this task as done:\n  " + task;
+    }
+
+    /**
+     * Marks a task as not done.
+     *
+     * @param arguments The task number to unmark.
+     * @return Confirmation message after unmarking the task.
+     */
+    private String handleUnmark(String arguments) {
+        int index = parseTaskIndex(arguments);
+        Task task = tasks.get(index);
+        task.unmark();
+        saveTasks();
+
+        return "OK, I've marked this task as not done yet:\n  " + task;
+    }
+
+    /**
+     * Adds a todo task to the task list.
+     *
+     * @param arguments The description of the todo task.
+     * @return Confirmation message after adding the task.
+     * @throws TomException If the description is empty.
+     */
+    private String handleTodo(String arguments) throws TomException {
+        if (arguments == null || arguments.trim().isEmpty()) {
+            throw new TomException("The description of a todo cannot be empty.");
+        }
+
+        Task todo = new Todo(arguments.trim());
+        tasks.add(todo);
+        saveTasks();
+
+        return "Got it. I've added this task:\n  " + todo
+                + "\nNow you have " + tasks.size() + " tasks in the list.";
+    }
+
+    /**
+     * Adds a deadline task to the task list.
+     *
+     * @param arguments The description and deadline of the task.
+     * @return Confirmation message after adding the task.
+     * @throws TomException If the input format is invalid.
+     */
+    private String handleDeadline(String arguments) throws TomException {
+        String[] parts = arguments.split(" /by ", 2);
+        if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
+            throw new TomException("The correct format is: deadline <description> /by <date>");
+        }
+
+        String description = parts[0].trim();
+        String by = parts[1].trim();
+
+        try {
+            LocalDate date = LocalDate.parse(by);
+            Task deadline = new Deadline(description, date);
+            tasks.add(deadline);
+            saveTasks();
+
+            return "Got it. I've added this task:\n  " + deadline
+                    + "\nNow you have " + tasks.size() + " tasks in the list.";
+        } catch (DateTimeParseException e) {
+            throw new TomException("Date must be in YYYY-MM-DD format.");
+        }
+    }
+
+    /**
+     * Adds an event task to the task list.
+     *
+     * @param arguments The description, start time, and end time of the event.
+     * @return Confirmation message after adding the task.
+     * @throws TomException If the input format is invalid.
+     */
+    private String handleEvent(String arguments) throws TomException {
+        String[] fromSplit = arguments.split(" /from ", 2);
+        if (fromSplit.length < 2 || fromSplit[0].trim().isEmpty()) {
+            throw new TomException("The correct format is: event <description> /from <start> /to <end>");
+        }
+
+        String description = fromSplit[0].trim();
+        String[] toSplit = fromSplit[1].split(" /to ", 2);
+
+        if (toSplit.length < 2 || toSplit[0].trim().isEmpty() || toSplit[1].trim().isEmpty()) {
+            throw new TomException("The correct format is: event <description> /from <start> /to <end>");
+        }
+
+        String from = toSplit[0].trim();
+        String to = toSplit[1].trim();
+
+        Task event = new Event(description, from, to);
+        tasks.add(event);
+        saveTasks();
+
+        return "Got it. I've added this task:\n  " + event
+                + "\nNow you have " + tasks.size() + " tasks in the list.";
+    }
+
+    /**
+     * Deletes a task from the task list.
+     *
+     * @param arguments The task number to delete.
+     * @return Confirmation message after deleting the task.
+     */
+    private String handleDelete(String arguments) {
+        int index = parseTaskIndex(arguments);
+        Task removedTask = tasks.remove(index);
+        saveTasks();
+
+        return "Noted. I've removed this task:\n  " + removedTask
+                + "\nNow you have " + tasks.size() + " tasks in the list.";
+    }
+
+    /**
+     * Finds tasks whose descriptions contain the given keyword.
+     *
+     * @param arguments The keyword to search for.
+     * @return Matching tasks, or a message if none are found.
+     * @throws TomException If the keyword is empty.
+     */
+    private String handleFind(String arguments) throws TomException {
+        if (arguments == null || arguments.trim().isEmpty()) {
+            throw new TomException("The keyword for find cannot be empty.");
+        }
+
+        ArrayList<Task> matchingTasks = tasks.find(arguments.trim());
+
+        if (matchingTasks.isEmpty()) {
+            return "No matching tasks found.";
+        }
+
+        return formatTaskList("Here are the matching tasks in your list:\n", matchingTasks);
+    }
+
+    /**
+     * Parses the task index from user input.
+     *
+     * @param arguments The user input representing a task number.
+     * @return Zero-based task index.
+     */
+    private int parseTaskIndex(String arguments) {
+        int index = Integer.parseInt(arguments.trim()) - 1;
+
+        if (index < 0 || index >= tasks.size()) {
+            throw new NumberFormatException();
+        }
+
+        return index;
+    }
+
+    /**
+     * Saves the current task list to storage.
+     */
+    private void saveTasks() {
+        storage.save(tasks.getTasks());
+    }
+
+    /**
+     * Formats a list of tasks into a numbered string.
+     *
+     * @param header The message header.
+     * @param taskList The list of tasks to format.
+     * @return Formatted string representation of the task list.
+     */
+    private String formatTaskList(String header, ArrayList<Task> taskList) {
+        StringBuilder sb = new StringBuilder(header);
+        for (int i = 0; i < taskList.size(); i++) {
+            sb.append(i + 1).append(". ").append(taskList.get(i)).append("\n");
+        }
+        return sb.toString().trim();
     }
 }

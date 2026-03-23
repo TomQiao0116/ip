@@ -98,40 +98,93 @@ public class Storage {
      * @return Parsed task, or {@code null} if parsing fails.
      */
     private Task parseLine(String line) {
-        if (line == null || line.trim().isEmpty()) {
+        if (isBlankLine(line)) {
             return null;
         }
 
-        String[] parts = line.split(" \\| ");
-        if (parts.length < 3) {
+        String[] parts = splitLine(line);
+        if (!isValidParts(parts)) {
             return null;
         }
 
+        Task task = createTask(parts);
+        if (task == null) {
+            return null;
+        }
+
+        markIfDone(task, parts);
+
+        return task;
+    }
+
+    /**
+     * Checks if a line is null or empty.
+     */
+    private boolean isBlankLine(String line) {
+        return line == null || line.trim().isEmpty();
+    }
+
+    /**
+     * Splits a line into parts using the delimiter.
+     */
+    private String[] splitLine(String line) {
+        return line.split(" \\| ");
+    }
+
+    /**
+     * Checks if the parsed parts array is valid.
+     */
+    private boolean isValidParts(String[] parts) {
+        return parts.length >= 3;
+    }
+
+    /**
+     * Creates a task object based on the parsed parts.
+     */
+    private Task createTask(String[] parts) {
         String type = parts[0];
-        boolean done = "1".equals(parts[1]);
         String desc = parts[2];
 
-        Task t;
         switch (type) {
             case "T":
-                t = new Todo(desc);
-                break;
+                return new Todo(desc);
             case "D":
-                if (parts.length < 4) return null;
-                LocalDate by = LocalDate.parse(parts[3]);
-                t = new Deadline(desc, by);
-                break;
+                return createDeadline(parts, desc);
             case "E":
-                if (parts.length < 5) return null;
-                t = new Event(desc, parts[3], parts[4]);
-                break;
+                return createEvent(parts, desc);
             default:
                 return null;
         }
+    }
 
-        if (done) {
-            t.mark();
+    /**
+     * Creates a deadline task from parsed parts.
+     */
+    private Task createDeadline(String[] parts, String desc) {
+        if (parts.length < 4) {
+            return null;
         }
-        return t;
+        LocalDate by = LocalDate.parse(parts[3]);
+        return new Deadline(desc, by);
+    }
+
+    /**
+     * Creates an event task from parsed parts.
+     */
+    private Task createEvent(String[] parts, String desc) {
+        if (parts.length < 5) {
+            return null;
+        }
+        return new Event(desc, parts[3], parts[4]);
+    }
+
+    /**
+     * Marks the task as done if indicated in the parsed parts.
+     */
+    private void markIfDone(Task task, String[] parts) {
+        boolean done = "1".equals(parts[1]);
+        if (done) {
+            task.mark();
+        }
     }
 }
